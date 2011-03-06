@@ -1,0 +1,233 @@
+<html><style>
+table {border:1px #000 solid;}
+td {width:5px; height:5px; border:1px #000 solid; background:#000}
+
+.X {border:none;background:#fac}
+
+.red {background:#F00;}
+.purple {background:#F0F;}
+.green {background:#0F0;}
+.blue {background:#00F;}
+
+.O {border-top:none;}
+.N {border-right:none;}
+.M {border-top:none;border-right:none;}
+.L {border-bottom:none;}
+.K {border-top:none;border-bottom:none;}
+.J {border-right:none;border-bottom:none;}
+.I {border-top:none;border-right:none;border-bottom:none;}
+.H {border-left:none;}
+.G {border-top:none;border-left:none;}
+.F {border-right:none;border-left:none;}
+.E {border-top:none;border-right:none;border-left:none;}
+.D {border-bottom:none;border-left:none;}
+.C {border-top:none;border-bottom:none;border-left:none;}
+.B {border-right:none;border-bottom:none;border-left:none;}
+.A {border:none;}
+
+</style><body></body><script>
+/*///////////////////////////////////////////////////////////////////////////////////
+    Maze generator toy -- using modified recursive backtracking (no actual recursion)
+    http://jsyang.ca   -- Feb. 01, 2011
+///////////////////////////////////////////////////////////////////////////////////*/
+/* Print out the styles to use for the tiles.
+function PrintTileStyles()
+{
+    var N=1<<0;
+    var E=1<<1;
+    var S=1<<2;
+    var W=1<<3;
+    
+    var css="";
+    for(var i=16; i-->0;)
+    {
+        // Style name.
+        css+="."+String.fromCharCode(65+i)+" {background:#FFF;";
+        
+        // Border bitfields.
+        css+=(i&N)?"":"border-top:none;";
+        css+=(i&E)?"":"border-right:none;";
+        css+=(i&S)?"":"border-bottom:none;";
+        css+=(i&W)?"":"border-left:none;";
+        
+        css+="}\n";
+    }
+    
+    return css;
+}
+*/
+
+// Maze object definition.
+function Maze(w,h)
+{
+    this.w=w;
+    this.h=h;
+    this.room=[];
+    // This is actually a reverse stack because I'm lazy. Un/shift instead of push/pop.
+    this.carveStack=[
+        [[0,0]],
+        [[0,w-1]],
+        [[h-1,w-1]],
+        [[h-1,0]]
+    ];
+    
+    // Make the empty rows. Use this as the row clone.
+    // Fill the 2D room matrix with disjoint rooms.
+        var d=[]; while(w--) d.push(15);
+        while(h--) this.room.push(d.slice());
+
+    this.room[0][0]+=(1<<4);
+    this.room[0][this.w-1]+=(1<<4);
+    this.room[this.h-1][0]+=(1<<4);
+    this.room[this.h-1][this.w-1]+=(1<<4);
+    
+    // Create the TABLE element so we can display the maze.
+        var html="Maze generation -- via <a href=http://en.wikipedia.org/wiki/"+
+        "Maze_generation_algorithm#Recursive_backtracker>recursive backtracking</a>."+
+        "<table cellspacing=0 cellpadding=0>";
+        for(var h in this.room)
+        {
+            var row=this.room[h];
+            html+="<tr>";
+            for(var w in row)
+            {
+                var cell=row[w];
+                html+="<td class='"+String.fromCharCode(65+cell)+"'"+
+/* for drawing the logo.
+                " id='"+h+"Z"+w+"'"+
+                " onclick='tack(this)'"+
+//*/
+                "></td>";
+            }
+            html+="</tr>";
+        }
+        document.body.innerHTML=html+"</table>";
+    
+    // Maze modification and display update.
+        this.mod=function(row,col,value,color)
+        {
+            var m=document.getElementsByTagName("table")[0].children[0];
+            var v1=(value<32)? (value%16) : 23;
+            // Max display value is 15, (1<<4) bit reserved for "visited" status.
+            m.children[row].children[col].className=String.fromCharCode(65+v1)+" "+color;
+            this.room[row][col]=value;
+        };
+        
+    // Recursive Backtracker.
+        this.RBcarve=function(w)
+        {
+            var cs=this.carveStack[w];
+            var color="red";
+            switch(w)
+            {
+                case 0: color="red"; break;
+                case 1: color="purple"; break;
+                case 2: color="green"; break;
+                case 3: color="blue"; break;
+            }
+            
+            // Default start at (0,0).
+            if(!cs.length)
+            {
+                if( this.carveStack[0].length+
+                    this.carveStack[1].length+
+                    this.carveStack[2].length+
+                    this.carveStack[3].length==0
+                ) setTimeout("window.location.href=window.location.href",800);
+                    
+                return;
+            }                
+/*
+            {
+                cs.push([0,0]);
+                this.room[0][0]+=(1<<4);
+            }
+*/            
+            var row=cs[0][0];
+            var col=cs[0][1];
+            
+            var potentialNextMove=[
+            // Properties of potential moves:
+            //   row, col,  direction to new from old, direction to old from new
+                [row-1,col, 1<<0,   1<<2],
+                [row,col+1, 1<<1,   1<<3],
+                [row+1,col, 1<<2,   1<<0],
+                [row,col-1, 1<<3,   1<<1]
+            ];
+            var nextMove=[];
+            
+            // Delete invalid moves or moves to visited cells.
+            for(var i in potentialNextMove)
+            {
+                var c=potentialNextMove[i];
+                if( c[0]<this.h && c[0]>=0 &&
+                    c[1]<this.w && c[1]>=0 &&
+                    !(this.room[c[0]][c[1]] & (1<<4)) )
+                {
+                    nextMove.push(c);
+                }
+            }
+            
+            
+            // Pick a valid move, if none, shift and go back.
+            if(nextMove.length>0)
+            {
+                var n=Math.floor(Math.random()*nextMove.length);
+                
+                // Carve path to new room from old room, mark old room as visited.
+                this.mod(row,col,this.room[row][col]-nextMove[n][2],color);
+
+                // LILO -- put new room in the stack.
+                row=nextMove[n][0];
+                col=nextMove[n][1];
+                cs.unshift([row,col]);
+                
+                // Mark as visited.
+                this.room[row][col]+=(1<<4);
+                // Carve path from new room to old room.
+                this.mod(row,col,this.room[row][col]-nextMove[n][3],color);
+            }
+            else
+            {
+                cs.shift();
+            }
+        };
+}
+
+// A new blank maze!
+var labyrinth=new Maze(48,48);
+
+/*/ Store the string with the logo in it.
+var pixels="";
+// For mouse-drawing the logo.
+function tack(o)
+{
+    var coords=o.id.split('Z');
+    o.className="X";
+    pixels+="["+coords[0]+","+coords[1]+"],";
+}
+//*/
+
+// Define the logo.
+
+var logo=[
+[11,11],[13,9],[12,9],[13,10],[13,11],[14,11],[15,11],[15,10],[15,9],[11,13],
+[11,7],[13,7],[14,7],[16,7],[15,7],[16,6],[15,5],[12,7],[11,9],[11,10],
+[12,13],[12,14],[11,15],[12,15],[13,14],[14,14],[15,14],[11,18],[12,17],
+[13,17],[14,17],[15,17],[13,18],[12,19],[13,19],[14,19],[15,19],[11,21],
+[12,21],[13,21],[14,21],[15,21],[12,22],[13,22],[14,23],[11,24],[12,24],
+[13,24],[14,24],[15,24],[11,26],[11,27],[11,28],[13,26],[12,26],[14,26],
+[15,26],[15,27],[15,28],[14,28],[13,28],[15,30],[15,32],[15,33],[14,32],
+[13,32],[12,32],[11,32],[11,33],[11,34],[15,34],[12,36],[13,36],[15,36],
+[14,36],[11,37],[13,38],[12,38],[14,38],[15,38],[13,37],[13,23],[16,5]
+];
+
+
+// Draw it.
+for(var i in logo) labyrinth.mod(logo[i][0],logo[i][1],(1<<4)+15);
+//for(var i in logo) labyrinth.mod(logo[i][0],logo[i][1],(1<<4)+(1<<5));
+//*/
+
+// Make a maze!
+var poo=setInterval("labyrinth.RBcarve(0);labyrinth.RBcarve(1);labyrinth.RBcarve(2);labyrinth.RBcarve(3);",1);
+</script></html>
