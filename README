@@ -7,3 +7,7 @@ Uses the basic recursive backtracker algorithm to carve a maze out of
 untouched cells in the grid. Also implemented in mazegen.html is a basic
 editor to create a logo array: mark cells as visited before the maze carving
 begins- the logo will remain unmolested as the carving proceeds.
+
+maze.html       A single carver maze.
+mazegen.html    4 carver maze.
+steve.html      For my friend Steve Pearce's 25th birthday. :)
