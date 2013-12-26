@@ -1,0 +1,28 @@
+<html>
+  <link rel="stylesheet" href="css/maze.css"/>
+  <body></body>
+  <script src="js/MazeRunner.js"></script>
+  <script>
+    // Write "hello" sequentially.
+    
+    var letters = [
+      { imageURL : 'img/h.png' },
+      { imageURL : 'img/e.png' },
+      { imageURL : 'img/l.png' },
+      { imageURL : 'img/l.png' },
+      { imageURL : 'img/o.png', runner : [1,1] }
+    ];
+    
+    var nextMazeLetter;
+    nextMazeLetter = function(){
+      if (letters.length) {
+        var l = letters.shift();
+        l.cb = nextMazeLetter;
+        new MazeRunner(l);
+      }
+    };
+    
+    nextMazeLetter();    
+    
+  </script>
+</html>

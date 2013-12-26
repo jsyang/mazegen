@@ -1,13 +1,10 @@
-"Mazegen" - jsyang.ca@gmail.com
+Mazegen - 2013 End of Year Edition!
 
-Maze generator toy that draws mazes with tables and CSS-borders instead of
-canvas: runs in IE and also quite well on the Kindle experimental browser.
+jsyang.ca@gmail.com
 
-Uses the basic recursive backtracker algorithm to carve a maze out of 
-untouched cells in the grid. Also implemented in mazegen.html is a basic
-editor to create a logo array: mark cells as visited before the maze carving
-begins- the logo will remain unmolested as the carving proceeds.
+Wrote this for a special new years message! Basically it's a souped
+up version of the maze generator originally in this repo. Those files
+have now been moved into the `old/` directory.
 
-maze.html       A single carver maze.
-mazegen.html    4 carver maze.
-steve.html      For my friend Steve Pearce's 25th birthday. :)
+Run any local server on this repo and you'll see things happen.
+Enjoy!

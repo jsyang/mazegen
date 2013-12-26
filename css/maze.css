@@ -1,0 +1,139 @@
+body
+{
+  background: #888;
+}
+
+.maze
+{
+  max-width: 100%;
+  display: inline-block;
+}
+
+.maze > div
+{
+  width: 4px;
+  height: 4px;
+  background: #888;
+  border: 1px #888 dashed;
+  display: inline-block;
+}
+
+/* Deleted walls */
+
+.maze > div.N
+{
+  border:     1px #000 solid;
+  border-top: 1px #dd4 solid;
+  background: #dd4;
+}
+
+.maze > div.NS
+{
+  border:         1px #000 solid;
+  border-top:     1px #dd4 solid;
+  border-bottom:  1px #dd4 solid;
+  background:     #dd4;
+}
+
+.maze > div.NE
+{
+  border:         1px #000 solid;
+  border-top:     1px #dd4 solid;
+  border-right:   1px #dd4 solid;
+  background:     #dd4;
+}
+
+.maze > div.NW
+{
+  border:         1px #000 solid;
+  border-top:     1px #dd4 solid;
+  border-left:    1px #dd4 solid;
+  background:     #dd4;
+}
+
+.maze > div.NSW
+{
+  border:         1px #000 solid;
+  border-top:     1px #dd4 solid;
+  border-left:    1px #dd4 solid;
+  border-bottom:  1px #dd4 solid;
+  background:     #dd4;
+}
+
+.maze > div.NSE
+{
+  border:         1px #000 solid;
+  border-top:     1px #dd4 solid;
+  border-right:   1px #dd4 solid;
+  border-bottom:  1px #dd4 solid;
+  background:     #dd4;
+}
+
+.maze > div.NEW
+{
+  border:         1px #000 solid;
+  border-top:     1px #dd4 solid;
+  border-right:   1px #dd4 solid;
+  border-left:   1px #dd4 solid;
+  background:     #dd4;
+}
+
+.maze > div.NSEW
+{
+  border:         1px #dd4 solid;
+  background:     #dd4;
+}
+
+.maze > div.S
+{
+  border:         1px #000 solid;
+  border-bottom:  1px #dd4 solid;
+  background:     #dd4;
+}
+
+.maze > div.SE
+{
+  border:         1px #000 solid;
+  border-bottom:  1px #dd4 solid;
+  border-right:   1px #dd4 solid;
+  background:     #dd4;
+}
+
+.maze > div.SW
+{
+  border:         1px #000 solid;
+  border-bottom:  1px #dd4 solid;
+  border-left:    1px #dd4 solid;
+  background:     #dd4;
+}
+
+.maze > div.SEW
+{
+  border:         1px #000 solid;
+  border-bottom:  1px #dd4 solid;
+  border-left:    1px #dd4 solid;
+  border-right:   1px #dd4 solid;
+  background:     #dd4;
+}
+
+.maze > div.E
+{
+  border:         1px #000 solid;
+  border-right:   1px #dd4 solid;
+  background:     #dd4;
+}
+
+.maze > div.EW
+{
+  border:         1px #000 solid;
+  border-right:   1px #dd4 solid;
+  border-left:    1px #dd4 solid;
+  background:     #dd4;
+}
+
+.maze > div.W
+{
+  border:         1px #000 solid;
+  border-left:    1px #dd4 solid;
+  background:     #dd4;
+}
