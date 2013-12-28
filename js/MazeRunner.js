@@ -19,12 +19,30 @@ MazeRunner.FLAGS = {
 };
 
 MazeRunner.prototype = {
+  // Dimensions of maze in cells
   w : 60,
   h : 60,
-  // total width of the DOM el for a cell = border-left + width + border-right
-  // MUST coincide with the values in css/maze.css
-  cellWidth : 6,
-  runner : [0,0]
+  runner : [0,0],
+  
+  // Drawing settings
+  cursorOffset : [1.5, 1.5],
+  cursor : [0,0],
+  cellColor : '#fff',
+  
+  wallWidth : 1,
+  cellWidth : 1
+};
+
+MazeRunner.prototype.createCanvas = function(){
+  this._canvas = document.createElement('canvas');
+  this._canvas.width = this.w*(this.cellWidth + this.wallWidth) + this.wallWidth;
+  this._canvas.height = this.h*(this.cellWidth + this.wallWidth) + this.wallWidth;
+  document.body.appendChild(this._canvas);
+  
+  this._ctx = this._canvas.getContext('2d');
+  
+  this._ctx.lineWidth = this.cellWidth;
+  this._ctx.strokeStyle = this.cellColor;
 };
 
 MazeRunner.prototype.init = function(){
@@ -32,31 +50,14 @@ MazeRunner.prototype.init = function(){
   // http://jsperf.com/typed-arrays-vs-arrays/7
   this._cells = new Uint32Array(this.w * this.h);
   
-  // Generate all the cells
-  this._el = document.createElement('div');
-  this._el.className = 'maze';
-  this._el.style.width = this.w * this.cellWidth;
-  
-  for(var i = this._cells.length; i-->0;) {
-    this._el.appendChild(document.createElement('div'));
-  }
-  
-  if (this.container != null) {
-    this.container.appendChild(this._el);
-  } else {
-    document.body.appendChild(this._el);
-  }
-  
   // Create the runner's stack to keep track of his options
   this._stack = [this.runner.slice()];
+  
+  this.createCanvas();
 };
 
 MazeRunner.prototype.getCell = function(x, y){
-  var index = this.w * y + x;
-  return {
-    el    : this._el.children[index],
-    value : this._cells[index]
-  };
+  return this._cells[this.w * y + x];
 };
 
 MazeRunner.prototype.setCellFlag = function(x, y, value){
@@ -78,7 +79,7 @@ MazeRunner.prototype.getValidMoves = function(x, y){
   potentialMoves.forEach(function(v){
     // Only add non-visited, in-bounds cells 
     if(
-       !(self.getCell(v[0], v[1]).value & MazeRunner.FLAGS.VISITED) &&
+       !(self.getCell(v[0], v[1]) & MazeRunner.FLAGS.VISITED) &&
        v[0] >= 0 && v[0] < self.w &&
        v[1] >= 0 && v[1] < self.h
     ) {
@@ -89,41 +90,45 @@ MazeRunner.prototype.getValidMoves = function(x, y){
   return validMoves;
 };
 
-MazeRunner.prototype.getCellClassName = function(x, y) {
-  var value = this.getCell(x, y).value;
-  var className = '';
-  ['N', 'S', 'E', 'W'].forEach(function(v){
-    if(value & MazeRunner.FLAGS[v]) className += v;
-  });
-  return className;
-};
-
 MazeRunner.prototype.step = function(){
-  var x = this.runner[0];
-  var y = this.runner[1];
+  var fromX = this.runner[0];
+  var fromY = this.runner[1];
   
   // Check for valid moves
-  var validMoves = this.getValidMoves(x, y);
+  var validMoves = this.getValidMoves(fromX, fromY);
   if (validMoves.length) {
     var cell = this.getCell.apply(this, this.runner);
     
     var nextMove = validMoves[(Math.random() * validMoves.length)>>0];
-    var nextCoords = nextMove.slice(0,2);
-    var nextCell = this.getCell.apply(this, nextCoords);
+    var toX = nextMove[0];
+    var toY = nextMove[1];
+    var nextCell = this.getCell(toX, toY);
     
-    // Carve from the current cell.
-    this.setCellFlag(x, y, MazeRunner.FLAGS.VISITED + MazeRunner.FLAGS[nextMove[2]]);
-    cell.el.className = this.getCellClassName(x, y);
+    // Marked both cells as visited so we never cross back into 
+    this.setCellFlag(fromX, fromY,  MazeRunner.FLAGS.VISITED + MazeRunner.FLAGS[nextMove[2]]);
+    this.setCellFlag(toX,   toY,    MazeRunner.FLAGS.VISITED + MazeRunner.FLAGS[nextMove[3]]);
     
-    // Carve into the next cell
-    this.setCellFlag(nextMove[0], nextMove[1], MazeRunner.FLAGS.VISITED + MazeRunner.FLAGS[nextMove[3]]);
-    nextCell.el.className = this.getCellClassName.apply(this, nextCoords);
+    var drawWidth = this.cellWidth + this.wallWidth;
     
-    this._stack.push(nextCoords);
-    this.runner = nextCoords.slice();
+    var drawFromX = fromX * drawWidth + this.cursorOffset[0];
+    var drawFromY = fromY * drawWidth + this.cursorOffset[1];
+    
+    var drawToX = toX * drawWidth + this.cursorOffset[0];
+    var drawToY = toY * drawWidth + this.cursorOffset[1];
+    
+    // Draw the tunnel from cell to cell.
+    this._ctx.beginPath();
+    this._ctx.moveTo(drawFromX, drawFromY);
+    this._ctx.lineTo(drawToX,   drawToY);
+    this._ctx.stroke();
+    
+    // Push our last position on the stack so we keep track of where we were
+    // and use that in case we run out of places to go next step
+    this._stack.push([toX, toY]);
+    this.runner = [toX, toY];
   
-  // LIFO backtrack and find a cell which has valid moves.
   } else {
+    // LIFO backtrack and find a cell which has valid moves.
     this.runner = this._stack.pop();
   }
   
@@ -143,8 +148,7 @@ MazeRunner.prototype.start = function(){
   })
 };
 
-// Draw a black on white connected image to set the bounds for
-// the generated maze!
+// Load a black on white connected image to set the bounds for the maze runner
 MazeRunner.prototype.loadBoundsFromImage = function(){
   var cvs = document.createElement('canvas');
   var ctx = cvs.getContext('2d');
