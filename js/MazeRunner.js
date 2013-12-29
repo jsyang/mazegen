@@ -35,10 +35,13 @@ MazeRunner.prototype = {
 
 MazeRunner.prototype.createCanvas = function(){
   this._canvas = document.createElement('canvas');
-  this._canvas.width = this.w*(this.cellWidth + this.wallWidth) + this.wallWidth;
-  this._canvas.height = this.h*(this.cellWidth + this.wallWidth) + this.wallWidth;
-  document.body.appendChild(this._canvas);
+  var width  = this.w * (this.cellWidth + this.wallWidth);
+  var height = this.h * (this.cellWidth + this.wallWidth);
   
+  this._canvas.width = width;
+  this._canvas.height = height;
+ 
+  document.body.appendChild(this._canvas);
   this._ctx = this._canvas.getContext('2d');
   
   this._ctx.lineWidth = this.cellWidth;
@@ -150,13 +153,18 @@ MazeRunner.prototype.start = function(){
 
 // Load a black on white connected image to set the bounds for the maze runner
 MazeRunner.prototype.loadBoundsFromImage = function(){
-  var cvs = document.createElement('canvas');
-  var ctx = cvs.getContext('2d');
-  
+ 
   var self = this;
   var img = new Image();
   
   img.onload = function(){
+    var cvs = document.createElement('canvas');
+    cvs.width = img.width;
+    cvs.height = img.height;
+    
+    console.log(img.width, img.height);
+    
+    var ctx = cvs.getContext('2d');
     // Paint to canvas then sample the image on the canvas.
     ctx.drawImage(img, 0, 0);
     var data = ctx.getImageData(0, 0, img.width, img.height).data;
